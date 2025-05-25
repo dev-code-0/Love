@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>My Love.</title>
+  <style>
+    html, body { margin:0; padding:0; overflow:hidden; background:#000; }
+    canvas { display:block; }
+  </style>
+</head>
+<body>
+  <audio id="popSound" src="pop.mp3" preload="auto"></audio>
+
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas     = document.getElementById('canvas');
+    const ctx        = canvas.getContext('2d');
+    canvas.width     = window.innerWidth;
+    canvas.height    = window.innerHeight;
+
+    const fontSize   = 40;
+    const numColumns = 6;
+    const columnWidth= canvas.width / numColumns;
+    const drops      = Array(numColumns).fill(0);
+
+    const speeds = Array(numColumns)
+      .fill(0)
+      .map(() => Math.random() * 1 + 0.5);
+    const particles = [];
+    const popSound = document.getElementById('popSound');
+
+    function animate() {
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font      = fontSize + 'px monospace';
+      ctx.fillStyle = '#f09';
+
+      for (let i = 0; i < numColumns; i++) {
+        const x = i * columnWidth;
+        const y = drops[i] * fontSize;
+        ctx.fillText('My Love', x, y);
+        if (y > canvas.height) drops[i] = 0;
+        drops[i] += speeds[i];
+      }
+
+      for (let p of particles) {
+        if (p.life > 0) {
+          ctx.globalAlpha = p.life / p.maxLife;
+          ctx.fillText('My Love', p.x, p.y);
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life--;
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      for (let i = particles.length - 1; i >= 0; i--) {if (particles[i].life <= 0) particles.splice(i, 1);}
+      requestAnimationFrame(animate);
+    }
+
+    canvas.addEventListener('click', e => {
+      popSound.currentTime = 0;
+      popSound.play();
+      const x = e.clientX, y = e.clientY;
+      for (let i = 0; i < 20; i++) {
+        const angle = Math.random() * 2 * Math.PI;
+        const speed = Math.random() * 4 + 1;
+        particles.push({x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 50, maxLife: 50
+        });
+      }
+    });
+    window.addEventListener('resize', () => {canvas.width  = window.innerWidth; canvas.height = window.innerHeight;});
+    animate();
+  </script>
+</body>
+</html>
